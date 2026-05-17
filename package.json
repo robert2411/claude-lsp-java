@@ -1,0 +1,22 @@
+{
+  "name": "claude-java-lsp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "claude-java-lsp": "./dist/claude-java-lsp"
+  },
+  "scripts": {
+    "dev": "~/.bun/bin/bun run src/index.ts",
+    "build": "~/.bun/bin/bun run scripts/build.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "~/.bun/bin/bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/bun": "latest"
+  }
+}
