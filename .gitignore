@@ -2,3 +2,8 @@ node_modules/
 dist/
 bun.lockb
 *.tmp
+# jdtls / Eclipse project metadata generated in fixture
+test/e2e/**/.classpath
+test/e2e/**/.project
+test/e2e/**/.settings/
+test/e2e/**/target/
