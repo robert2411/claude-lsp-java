@@ -10,7 +10,8 @@
     "dev": "~/.bun/bin/bun run src/index.ts",
     "build": "~/.bun/bin/bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
-    "test": "~/.bun/bin/bun test"
+    "test": "~/.bun/bin/bun test",
+    "test:coverage": "~/.bun/bin/bun test test/unit --coverage --coverage-reporter=lcov --coverage-dir=coverage"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1"

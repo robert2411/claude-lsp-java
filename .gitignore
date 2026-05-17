@@ -1,5 +1,6 @@
 node_modules/
 dist/
+coverage/
 bun.lockb
 *.tmp
 # jdtls / Eclipse project metadata generated in fixture
