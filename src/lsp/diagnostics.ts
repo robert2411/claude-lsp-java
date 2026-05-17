@@ -1,7 +1,7 @@
 import type { LspDiagnostic } from "./types.ts";
 
 interface DiagnosticsEntry {
-  version: number;
+  version: number | undefined; // undefined when jdtls omits the version field
   receivedAt: number;
   diagnostics: LspDiagnostic[];
 }
@@ -13,7 +13,7 @@ export class DiagnosticsStore {
 
   publish(uri: string, version: number | undefined, diagnostics: LspDiagnostic[]): void {
     const entry: DiagnosticsEntry = {
-      version: version ?? 0,
+      version,
       receivedAt: Date.now(),
       diagnostics,
     };
@@ -50,8 +50,10 @@ export class DiagnosticsStore {
         resolve({ entry: best, timedOut: true });
       }, timeoutMs);
 
+      // Qualify if arrived after the send AND (version matches OR jdtls omitted version)
       const qualify = (entry: DiagnosticsEntry) =>
-        entry.receivedAt >= sinceTs && entry.version >= sinceVersion;
+        entry.receivedAt >= sinceTs &&
+        (entry.version === undefined || entry.version >= sinceVersion);
 
       const settle = () => {
         cleanup();

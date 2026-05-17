@@ -1,10 +1,11 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "fs";
-import { dirname, resolve } from "path";
+import { dirname } from "path";
 import { execSync } from "child_process";
 import { CLAUDE_SETTINGS } from "../core/paths.ts";
 import { bootstrapJdtls } from "../jdtls/bootstrap.ts";
 import { findRunnerJdk, findAllJdks } from "../jdtls/jdk.ts";
 import { log } from "../core/log.ts";
+import { selfCommand } from "../util/self.ts";
 
 export async function runInstall(args: string[]): Promise<void> {
   const force = args.includes("--force");
@@ -39,8 +40,8 @@ export async function runInstall(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  // 3. Resolve our binary path
-  const self = resolve(process.execPath);
+  // 3. Resolve our command (handles compiled binary vs dev mode)
+  const self = selfCommand();
   console.log(`\n✓ Binary: ${self}`);
 
   // 4. Register PostToolUse hook in ~/.claude/settings.json
@@ -63,6 +64,7 @@ export async function runInstall(args: string[]): Promise<void> {
   console.log("\n✓ Installation complete!\n");
   console.log("Restart Claude Code for the hook and MCP server to take effect.");
 }
+
 
 function checkTar(): void {
   try {
@@ -90,16 +92,17 @@ function registerHook(binaryPath: string): void {
   const hooks = (settings.hooks as Record<string, unknown[]> | undefined) ?? {};
   const ptu: typeof hookEntry[] = (hooks.PostToolUse as typeof hookEntry[] | undefined) ?? [];
 
-  // Dedupe: replace if same matcher+command already present
-  const command = hookEntry.hooks[0].command;
+  // Remove all previous claude-java-lsp hook entries (any command ending in " hook")
+  // and insert the current one — ensures only one entry regardless of binary path changes.
   const matcher = hookEntry.matcher;
-  const idx = ptu.findIndex(
-    e => e.matcher === matcher && e.hooks?.some((h: { command?: string }) => h.command === command),
-  );
-  if (idx !== -1) ptu[idx] = hookEntry;
-  else ptu.push(hookEntry);
+  const isOurs = (e: { matcher: string; hooks?: Array<{ command?: string }> }) =>
+    e.matcher === matcher && e.hooks?.some(h => h.command?.endsWith(" hook") &&
+      (h.command.includes("claude-java-lsp") || h.command.includes("index.ts")));
 
-  hooks.PostToolUse = ptu;
+  const filtered = ptu.filter(e => !isOurs(e));
+  filtered.push(hookEntry);
+
+  hooks.PostToolUse = filtered;
   settings.hooks = hooks;
 
   // Atomic write

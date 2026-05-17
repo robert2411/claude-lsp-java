@@ -1,6 +1,6 @@
 export const JDTLS_VERSION = "1.58.0";
+export const JDTLS_TARBALL = `jdt-language-server-${JDTLS_VERSION}-202604151538.tar.gz`;
 export const JDTLS_MILESTONE_BASE = `https://download.eclipse.org/jdtls/milestones/${JDTLS_VERSION}/`;
-export const JDTLS_SNAPSHOT_URL = "https://download.eclipse.org/jdtls/snapshots/jdt-language-server-latest.tar.gz";
 export const JDTLS_MIN_JAVA_VERSION = 21;
 
 export const DAEMON_IDLE_MS = parseInt(process.env.DAEMON_IDLE_MS ?? "") || 30 * 60 * 1000;

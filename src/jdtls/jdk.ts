@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { existsSync, readdirSync } from "fs";
+import { existsSync, readdirSync, realpathSync } from "fs";
 import { join } from "path";
 
 export interface JdkInfo {
@@ -102,10 +102,10 @@ function javaVersion(javaBin: string): number | null {
 function pathFromJava(javaBin: string): string | null {
   try {
     const out = execSync(`which ${javaBin}`, { stdio: "pipe" }).toString().trim();
-    // Resolve symlinks to get the real JDK home: bin/java → ../../
-    const { realpathSync } = require("fs") as typeof import("fs");
+    if (!out) return null;
     const real = realpathSync(out);
-    return join(real, "..", ".."); // bin/java → ../ → jdk root
+    // bin/java → bin/ → jdk root
+    return join(real, "..", "..");
   } catch {
     return null;
   }

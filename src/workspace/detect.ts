@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, realpathSync } from "fs";
+import { existsSync, readFileSync, realpathSync, statSync } from "fs";
 import { dirname, join } from "path";
 import { homedir } from "os";
 
@@ -11,7 +11,10 @@ export function findMavenRoot(filePath: string): string {
   }
 
   const realFile = tryRealpath(filePath);
-  const dir = dirname(realFile);
+  // If path is a directory, search from it; if a file, search from its parent
+  let isDir = false;
+  try { isDir = statSync(realFile).isDirectory(); } catch {}
+  const dir = isDir ? realFile : dirname(realFile);
 
   if (cache.has(dir)) return cache.get(dir)!;
 

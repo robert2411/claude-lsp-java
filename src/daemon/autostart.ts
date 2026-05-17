@@ -2,6 +2,7 @@ import type { IpcRequest, IpcResponse } from "./protocol.ts";
 import { SOCKET_PATH } from "../core/paths.ts";
 import { existsSync, unlinkSync } from "fs";
 import { log } from "../core/log.ts";
+import { selfArgv } from "../util/self.ts";
 
 let nextId = 1;
 
@@ -62,8 +63,7 @@ export async function ipcRequest(
 }
 
 async function spawnDaemon(): Promise<void> {
-  const self = process.execPath;
-  const child = Bun.spawn([self, "daemon"], {
+  const child = Bun.spawn([...selfArgv(), "daemon"], {
     detached: true,
     stdio: ["ignore", "ignore", "ignore"],
   });

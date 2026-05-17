@@ -17,7 +17,7 @@ for (const target of buildTargets) {
   const outfile = `dist/claude-java-lsp-${target.replace("bun-", "")}`;
   console.log(`Building ${target} → ${outfile}`);
   const proc = Bun.spawn(
-    ["bun", "build", "./src/index.ts", "--compile", "--minify", `--target=${target}`, `--outfile=${outfile}`],
+    [process.execPath, "build", "./src/index.ts", "--compile", "--minify", `--target=${target}`, `--outfile=${outfile}`],
     { stdout: "inherit", stderr: "inherit" },
   );
   const code = await proc.exited;

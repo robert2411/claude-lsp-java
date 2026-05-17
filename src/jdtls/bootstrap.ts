@@ -1,8 +1,8 @@
-import { existsSync, mkdirSync, renameSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, renameSync, unlinkSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
 import { JDTLS_DIR } from "../core/paths.ts";
-import { JDTLS_VERSION, JDTLS_MILESTONE_BASE } from "../core/config.ts";
+import { JDTLS_VERSION, JDTLS_TARBALL, JDTLS_MILESTONE_BASE } from "../core/config.ts";
 import { sha256File } from "../util/sha256.ts";
 import { log } from "../core/log.ts";
 import { platform, arch } from "os";
@@ -34,21 +34,15 @@ export async function bootstrapJdtls(force = false): Promise<JdtlsLayout> {
   log.info(`Downloading jdtls ${JDTLS_VERSION}…`);
   mkdirSync(versionDir, { recursive: true });
 
-  // Fetch the milestone directory listing to find the exact tarball name
-  const listing = await fetch(JDTLS_MILESTONE_BASE);
-  if (!listing.ok) throw new Error(`Failed to fetch milestone listing: ${listing.status}`);
-  const html = await listing.text();
-
-  const tarballs = [...html.matchAll(/href="(jdt-language-server-[\d.]+-\d+\.tar\.gz)"/g)]
-    .map(m => m[1]);
-  if (tarballs.length === 0) throw new Error(`No jdtls tarball found at ${JDTLS_MILESTONE_BASE}`);
-
-  const tarball = tarballs[0];
+  const tarball = JDTLS_TARBALL;
   const tarUrl = JDTLS_MILESTONE_BASE + tarball;
   const sha256Url = tarUrl + ".sha256";
 
   log.info(`Fetching ${tarball}…`);
-  const [tarResp, shaResp] = await Promise.all([fetch(tarUrl), fetch(sha256Url)]);
+  const [tarResp, shaResp] = await Promise.all([
+    fetch(tarUrl),
+    fetch(sha256Url),
+  ]);
   if (!tarResp.ok) throw new Error(`Download failed: ${tarResp.status}`);
   if (!shaResp.ok) throw new Error(`SHA256 download failed: ${shaResp.status}`);
 
@@ -86,7 +80,6 @@ function findLauncherJar(dir: string): string | null {
   const pluginsDir = join(dir, "plugins");
   if (!existsSync(pluginsDir)) return null;
   try {
-    const { readdirSync } = require("fs") as typeof import("fs");
     const files = readdirSync(pluginsDir);
     const jar = files.find(f => f.startsWith("org.eclipse.equinox.launcher_") && f.endsWith(".jar"));
     return jar ? join(pluginsDir, jar) : null;

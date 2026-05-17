@@ -10,7 +10,7 @@ export async function awaitServiceReady(
   client: LspClient,
   timeoutMs = READY_TIMEOUT_COLD_MS,
 ): Promise<boolean> {
-  if (client.isReady) return true;
+  if (client.isReady) { log.info("jdtls already ready"); return true; }
 
   log.info("Waiting for jdtls ServiceReady…");
 
