@@ -12,17 +12,25 @@ A long-lived **daemon** keeps one Eclipse JDT Language Server (jdtls) process wa
 ## Requirements
 
 - Java 21+ (to run jdtls; your project can target any Java version)
-- [Bun](https://bun.sh) (runtime + build tool)
 - Maven projects only
 
-## Install
+## Install from release (recommended)
+
+No clone or build step needed. Download the pre-built binary for your platform from the [latest release](https://github.com/robert2411/claude-lsp-java/releases/latest):
+
+| Platform | Binary |
+|---|---|
+| Linux x86-64 | `claude-java-lsp-linux-x64` |
+| Linux ARM64 | `claude-java-lsp-linux-arm64` |
+| macOS Intel | `claude-java-lsp-darwin-x64` |
+| macOS Apple Silicon | `claude-java-lsp-darwin-arm64` |
 
 ```bash
-git clone <this-repo> && cd claude-java-lsp
-curl -fsSL https://bun.sh/install | bash && source ~/.bashrc
-~/.bun/bin/bun install
-~/.bun/bin/bun run build
-./dist/claude-java-lsp-linux-x64 install
+# Example for Linux x86-64 — replace the binary name for your platform
+curl -fsSL https://github.com/robert2411/claude-lsp-java/releases/latest/download/claude-java-lsp-linux-x64 \
+  -o ~/.local/bin/claude-java-lsp
+chmod +x ~/.local/bin/claude-java-lsp
+claude-java-lsp install
 ```
 
 `install` will:
@@ -38,7 +46,7 @@ Then **restart Claude Code** for the hook and MCP to take effect.
 jdtls takes 30–180s to import a Maven project on first run. Warm it before your first edit so that initial diagnostics are instant:
 
 ```bash
-./dist/claude-java-lsp-linux-x64 warm /path/to/your/maven/project
+claude-java-lsp warm /path/to/your/maven/project
 ```
 
 After `warm` returns, every subsequent edit in that project returns real diagnostics in under a second.
@@ -62,27 +70,37 @@ All tools accept 0-based line/character positions and absolute `file_path` value
 
 ```bash
 # Check daemon status
-./dist/claude-java-lsp-linux-x64 status
+claude-java-lsp status
 
 # Stop the daemon (it also auto-stops after 30min idle)
-./dist/claude-java-lsp-linux-x64 stop
+claude-java-lsp stop
 
 # Force re-download jdtls
-./dist/claude-java-lsp-linux-x64 install --force
+claude-java-lsp install --force
 ```
 
 ## Multi-machine setup
 
-The daemon, jdtls cache, and workspace data all live under `~/.cache/claude-java-lsp/`. Clone the repo on each machine and run:
+The daemon, jdtls cache, and workspace data all live under `~/.cache/claude-java-lsp/`. On each machine just download the binary for that platform and run `install` — no clone or build needed:
 
 ```bash
-~/.bun/bin/bun install && ~/.bun/bin/bun run build
-./dist/claude-java-lsp-linux-x64 install
+curl -fsSL https://github.com/robert2411/claude-lsp-java/releases/latest/download/claude-java-lsp-linux-x64 \
+  -o ~/.local/bin/claude-java-lsp
+chmod +x ~/.local/bin/claude-java-lsp
+claude-java-lsp install
 ```
 
-jdtls is downloaded fresh per machine (90MB). The compiled binary is platform-specific (`linux-x64`, `linux-arm64`, `darwin-x64`, `darwin-arm64`); build with `bun run build --all` to produce all four.
+jdtls is downloaded fresh per machine (~90MB, one-time). Replace `linux-x64` with the suffix for your platform (`linux-arm64`, `darwin-x64`, `darwin-arm64`).
 
-## Development
+## Development (contributing)
+
+Requires [Bun](https://bun.sh).
+
+```bash
+git clone https://github.com/robert2411/claude-lsp-java.git && cd claude-lsp-java
+curl -fsSL https://bun.sh/install | bash && source ~/.bashrc
+~/.bun/bin/bun install
+```
 
 ```bash
 # Run without building
