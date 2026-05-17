@@ -14,23 +14,18 @@ A long-lived **daemon** keeps one Eclipse JDT Language Server (jdtls) process wa
 - Java 21+ (to run jdtls; your project can target any Java version)
 - Maven projects only
 
-## Install from release (recommended)
-
-No clone or build step needed. Download the pre-built binary for your platform from the [latest release](https://github.com/robert2411/claude-lsp-java/releases/latest):
-
-| Platform | Binary |
-|---|---|
-| Linux x86-64 | `claude-java-lsp-linux-x64` |
-| Linux ARM64 | `claude-java-lsp-linux-arm64` |
-| macOS Intel | `claude-java-lsp-darwin-x64` |
-| macOS Apple Silicon | `claude-java-lsp-darwin-arm64` |
+## Install
 
 ```bash
-# Example for Linux x86-64 — replace the binary name for your platform
-curl -fsSL https://github.com/robert2411/claude-lsp-java/releases/latest/download/claude-java-lsp-linux-x64 \
-  -o ~/.local/bin/claude-java-lsp
-chmod +x ~/.local/bin/claude-java-lsp
-claude-java-lsp install
+curl -fsSL https://raw.githubusercontent.com/robert2411/claude-lsp-java/master/install.sh | bash
+```
+
+The script detects your OS and architecture (Linux/macOS, x86-64/ARM64), downloads the right pre-built binary from the [latest release](https://github.com/robert2411/claude-lsp-java/releases/latest) to `~/.local/bin`, and runs `install` automatically. No clone or build step needed.
+
+To install to a different directory:
+
+```bash
+INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/robert2411/claude-lsp-java/master/install.sh | bash
 ```
 
 `install` will:
@@ -81,16 +76,13 @@ claude-java-lsp install --force
 
 ## Multi-machine setup
 
-The daemon, jdtls cache, and workspace data all live under `~/.cache/claude-java-lsp/`. On each machine just download the binary for that platform and run `install` — no clone or build needed:
+Run the same install command on each machine — the script detects the platform automatically:
 
 ```bash
-curl -fsSL https://github.com/robert2411/claude-lsp-java/releases/latest/download/claude-java-lsp-linux-x64 \
-  -o ~/.local/bin/claude-java-lsp
-chmod +x ~/.local/bin/claude-java-lsp
-claude-java-lsp install
+curl -fsSL https://raw.githubusercontent.com/robert2411/claude-lsp-java/master/install.sh | bash
 ```
 
-jdtls is downloaded fresh per machine (~90MB, one-time). Replace `linux-x64` with the suffix for your platform (`linux-arm64`, `darwin-x64`, `darwin-arm64`).
+The daemon, jdtls cache, and workspace data all live under `~/.cache/claude-java-lsp/`. jdtls is downloaded fresh per machine (~90MB, one-time).
 
 ## Development (contributing)
 
