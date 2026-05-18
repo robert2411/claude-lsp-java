@@ -1,10 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "fs";
-import { dirname } from "path";
-import { execSync } from "child_process";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { dirname } from "node:path";
+import { execSync } from "node:child_process";
 import { CLAUDE_SETTINGS } from "../core/paths.ts";
 import { bootstrapJdtls } from "../jdtls/bootstrap.ts";
 import { findRunnerJdk, findAllJdks } from "../jdtls/jdk.ts";
-import { log } from "../core/log.ts";
 import { selfCommand } from "../util/self.ts";
 
 export async function runInstall(args: string[]): Promise<void> {

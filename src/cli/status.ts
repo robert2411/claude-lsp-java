@@ -1,5 +1,5 @@
 import { SOCKET_PATH, PID_FILE } from "../core/paths.ts";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 
 export async function runStatus(): Promise<void> {
   const pidExists = existsSync(PID_FILE);
@@ -12,7 +12,7 @@ export async function runStatus(): Promise<void> {
 
   let pid: number | null = null;
   if (pidExists) {
-    pid = parseInt(readFileSync(PID_FILE, "utf8").trim());
+    pid = Number.parseInt(readFileSync(PID_FILE, "utf8").trim());
     const alive = isAlive(pid);
     console.log(`daemon: ${alive ? "running" : "stale"} (pid ${pid})`);
   } else {

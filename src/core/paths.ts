@@ -1,5 +1,5 @@
-import { join } from "path";
-import { homedir } from "os";
+import { join } from "node:path";
+import { homedir } from "node:os";
 
 const home = homedir();
 const xdgCache = process.env.XDG_CACHE_HOME ?? join(home, ".cache");

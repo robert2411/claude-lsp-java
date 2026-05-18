@@ -1,7 +1,7 @@
 import { ipcRequest } from "../daemon/autostart.ts";
 import { findMavenRoot } from "../workspace/detect.ts";
-import { resolve } from "path";
-import { existsSync } from "fs";
+import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 export async function runWarm(pathArg?: string): Promise<void> {
   const targetPath = pathArg ? resolve(pathArg) : process.cwd();
@@ -43,7 +43,7 @@ export async function runWarm(pathArg?: string): Promise<void> {
         process.stdout.write(".");
         await delay(3000);
       }
-    } catch (err) {
+    } catch {
       process.stdout.write(".");
       await delay(3000);
     }

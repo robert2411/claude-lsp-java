@@ -1,5 +1,5 @@
-import { appendFileSync, mkdirSync } from "fs";
-import { dirname } from "path";
+import { appendFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 type Level = "debug" | "info" | "warn" | "error";
 
@@ -27,7 +27,7 @@ function emit(level: Level, msg: string): void {
   if (logFile) {
     try { appendFileSync(logFile, line + "\n"); } catch {}
   } else {
-    (level === "error" || level === "warn" ? process.stderr : process.stderr).write(line + "\n");
+    (level === "error" || level === "warn" ? process.stderr : process.stdout).write(line + "\n");
   }
 }
 

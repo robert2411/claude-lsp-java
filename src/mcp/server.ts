@@ -1,43 +1,82 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 import { ipcRequest } from "../daemon/autostart.ts";
-import { TOOLS } from "./tools.ts";
 import { log } from "../core/log.ts";
 
+type IpcOp = Parameters<typeof ipcRequest>[0]["op"];
+
+async function callIpc(op: IpcOp, args: Record<string, unknown>) {
+  try {
+    const result = await ipcRequest({ op, payload: args });
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    return {
+      content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+      isError: true,
+    };
+  }
+}
+
+const filePos = {
+  file_path: z.string().describe("Absolute path to the .java file"),
+  line: z.number().describe("0-based line number"),
+  character: z.number().describe("0-based character offset"),
+};
+
 export async function startMcpServer(): Promise<void> {
-  const server = new Server(
-    { name: "java-lsp", version: "0.1.0" },
-    { capabilities: { tools: {} } },
+  const server = new McpServer({ name: "java-lsp", version: "0.1.0" });
+
+  server.tool("java_diagnostics",
+    "Get Java compiler and type diagnostics for a file. First call after startup may return status='indexing' while jdtls imports the project.",
+    { file_path: z.string().describe("Absolute path to the .java file") },
+    (args) => callIpc("diagnostics", args),
   );
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: TOOLS.map(t => ({
-      name: t.name,
-      description: t.description,
-      inputSchema: t.inputSchema,
-    })),
-  }));
+  server.tool("java_hover",
+    "Get hover information (javadoc, type signature) for a symbol at a position.",
+    filePos,
+    (args) => callIpc("hover", args),
+  );
 
-  server.setRequestHandler(CallToolRequestSchema, async req => {
-    const tool = TOOLS.find(t => t.name === req.params.name);
-    if (!tool) throw new Error(`Unknown tool: ${req.params.name}`);
+  server.tool("java_definition",
+    "Go to the definition of a symbol (class, method, field) at a position.",
+    filePos,
+    (args) => callIpc("definition", args),
+  );
 
-    try {
-      const result = await ipcRequest({
-        op: tool.op as Parameters<typeof ipcRequest>[0]["op"],
-        payload: req.params.arguments as Record<string, unknown>,
-      });
-      return {
-        content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
-      };
-    } catch (err) {
-      return {
-        content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
-        isError: true,
-      };
-    }
-  });
+  server.tool("java_references",
+    "Find all references to a symbol at a position across the workspace.",
+    { ...filePos, include_declaration: z.boolean().optional().describe("Include the declaration itself") },
+    (args) => callIpc("references", args),
+  );
+
+  server.tool("java_completion",
+    "Get code completion suggestions at a position (up to 100 items).",
+    filePos,
+    (args) => callIpc("completion", args),
+  );
+
+  server.tool("java_document_symbols",
+    "List all symbols (classes, methods, fields) in a Java file.",
+    { file_path: z.string().describe("Absolute path to the .java file") },
+    (args) => callIpc("documentSymbols", args),
+  );
+
+  server.tool("java_workspace_symbols",
+    "Search for symbols across the entire Maven workspace by name query.",
+    {
+      query: z.string().describe("Symbol name search query (can be partial)"),
+      file_path: z.string().optional().describe("Optional: a file to anchor the workspace root"),
+    },
+    (args) => callIpc("workspaceSymbols", args),
+  );
+
+  server.tool("java_rename",
+    "Compute rename edits for a symbol. Returns changes to apply — does NOT modify files. Apply with the Edit tool.",
+    { ...filePos, new_name: z.string().describe("New name for the symbol") },
+    (args) => callIpc("rename", args),
+  );
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

@@ -1,11 +1,11 @@
-import { existsSync, mkdirSync, readdirSync, renameSync, unlinkSync } from "fs";
-import { join } from "path";
-import { execSync } from "child_process";
+import { existsSync, mkdirSync, readdirSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { execSync } from "node:child_process";
 import { JDTLS_DIR } from "../core/paths.ts";
 import { JDTLS_VERSION, JDTLS_TARBALL, JDTLS_MILESTONE_BASE } from "../core/config.ts";
 import { sha256File } from "../util/sha256.ts";
 import { log } from "../core/log.ts";
-import { platform, arch } from "os";
+import { platform, arch } from "node:os";
 
 interface JdtlsLayout {
   launcherJar: string;

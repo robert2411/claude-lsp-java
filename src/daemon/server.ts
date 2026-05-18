@@ -1,5 +1,5 @@
-import { mkdirSync, writeFileSync, existsSync, unlinkSync, createWriteStream } from "fs";
-import { dirname } from "path";
+import { mkdirSync, writeFileSync, existsSync, unlinkSync, createWriteStream } from "node:fs";
+import { dirname } from "node:path";
 import type { Socket } from "bun";
 import { SOCKET_PATH, PID_FILE, LOGS_DIR, DAEMON_LOG } from "../core/paths.ts";
 import { setLogFile, log } from "../core/log.ts";
@@ -7,12 +7,11 @@ import { DAEMON_IDLE_MS, READY_TIMEOUT_HOOK_MS, HOOK_HARD_TIMEOUT_MS, SETTLE_MS 
 import { findMavenRoot } from "../workspace/detect.ts";
 import { launchJdtls } from "../jdtls/launch.ts";
 import { awaitServiceReady } from "../jdtls/readiness.ts";
-import { fileToUri, uriToFile } from "../util/uri.ts";
-import { symbolKindName } from "../lsp/types.ts";
+import { fileToUri } from "../util/uri.ts";
 import type { LspClient } from "../lsp/client.ts";
 import type { IpcRequest, IpcResponse, DiagnosticsResult, Diagnostic, DiagnosticSeverity } from "./protocol.ts";
 import type { LspDiagnostic } from "../lsp/types.ts";
-import type { ChildProcess } from "child_process";
+import type { ChildProcess } from "node:child_process";
 
 type SessionState = "STARTING" | "INDEXING" | "READY" | "DEAD";
 
@@ -47,7 +46,7 @@ export async function startDaemon(): Promise<void> {
   process.on("SIGTERM", () => { cleanup(); process.exit(0); });
   process.on("SIGINT", () => { cleanup(); process.exit(0); });
 
-  const server = Bun.listen<Buffer[]>({
+  Bun.listen<Buffer[]>({
     unix: SOCKET_PATH,
     socket: {
       open(socket) { socket.data = []; },
@@ -123,7 +122,7 @@ async function dispatch(req: IpcRequest): Promise<unknown> {
     case "references": return session.client.references(file, req.payload.line as number, req.payload.character as number, Boolean(req.payload.include_declaration));
     case "completion": return session.client.completion(file, req.payload.line as number, req.payload.character as number);
     case "documentSymbols": return session.client.documentSymbols(file);
-    case "workspaceSymbols": return session.client.workspaceSymbols(String(req.payload.query ?? ""));
+    case "workspaceSymbols": return session.client.workspaceSymbols(typeof req.payload.query === "string" ? req.payload.query : "");
     case "rename": return session.client.rename(file, req.payload.line as number, req.payload.character as number, String(req.payload.new_name));
     default: throw new Error(`unknown op: ${req.op}`);
   }
@@ -243,7 +242,7 @@ function resetIdleTimer(): void {
 
 function shutdownAll(): void {
   log.info("daemon shutting down");
-  for (const [root, session] of sessions) {
+  for (const [, session] of sessions) {
     try { session.proc.kill(); } catch {}
   }
   sessions.clear();

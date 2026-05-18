@@ -1,11 +1,11 @@
-import type { ChildProcess } from "child_process";
-import { readFileSync } from "fs";
+import type { ChildProcess } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { JsonRpcClient } from "./jsonrpc.ts";
 import { DiagnosticsStore } from "./diagnostics.ts";
 import { fileToUri, uriToFile } from "../util/uri.ts";
 import { symbolKindName, completionKindName } from "./types.ts";
 import type {
-  LspDiagnostic, PublishDiagnosticsParams, LanguageStatusParams,
+  PublishDiagnosticsParams, LanguageStatusParams,
   ProgressReportParams, LspLocation, LspSymbol, LspDocumentSymbol,
   LspCompletionItem, LspWorkspaceEdit,
 } from "./types.ts";
@@ -20,9 +20,9 @@ export type StatusListener = (type: string, message: string) => void;
 
 export class LspClient {
   readonly diagnostics = new DiagnosticsStore();
-  private rpc: JsonRpcClient;
-  private docVersions = new Map<string, number>();
-  private statusListeners: StatusListener[] = [];
+  private readonly rpc: JsonRpcClient;
+  private readonly docVersions = new Map<string, number>();
+  private readonly statusListeners: StatusListener[] = [];
 
   // Readiness (cold start)
   private _ready = false;
@@ -278,8 +278,8 @@ function extractMarkdown(contents: unknown): string | null {
   if (!contents) return null;
   if (typeof contents === "string") return contents;
   if (Array.isArray(contents)) return (contents as Array<{ value?: string } | string>).map(c => typeof c === "string" ? c : (c.value ?? "")).join("\n---\n");
-  if (typeof contents === "object" && "value" in (contents as object)) return (contents as { value: string }).value;
-  return String(contents);
+  if (typeof contents === "object" && contents !== null && "value" in contents) return (contents as { value: string }).value;
+  return JSON.stringify(contents);
 }
 
 function mapDocSymbols(syms: LspDocumentSymbol[]): SymbolInfo[] {

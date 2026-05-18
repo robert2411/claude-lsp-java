@@ -1,4 +1,4 @@
-import { realpathSync } from "fs";
+import { realpathSync } from "node:fs";
 
 export function fileToUri(path: string): string {
   const real = tryRealpath(path);

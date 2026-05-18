@@ -1,6 +1,6 @@
-import { execSync } from "child_process";
-import { existsSync, readdirSync, realpathSync } from "fs";
-import { join } from "path";
+import { execSync } from "node:child_process";
+import { existsSync, readdirSync, realpathSync } from "node:fs";
+import { join } from "node:path";
 
 export interface JdkInfo {
   path: string;
@@ -91,9 +91,9 @@ function commonJdkRoots(): string[] {
 function javaVersion(javaBin: string): number | null {
   try {
     const out = execSync(`"${javaBin}" -version 2>&1`, { stdio: "pipe" }).toString();
-    const m = out.match(/version "(?:1\.(\d+)|(\d+))/);
+    const m = /version "(?:1\.(\d+)|(\d+))/.exec(out);
     if (!m) return null;
-    return parseInt(m[1] ?? m[2]);
+    return Number.parseInt(m[1] ?? m[2]);
   } catch {
     return null;
   }

@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 /**
  * Returns [executablePath, ...extraArgs] to spawn this same process.
@@ -7,7 +7,7 @@ import { resolve } from "path";
  */
 export function selfArgv(): string[] {
   const main = process.argv[1];
-  if (main && main.endsWith(".ts")) {
+  if (main?.endsWith(".ts")) {
     return [resolve(process.execPath), resolve(main)];
   }
   return [resolve(process.execPath)];

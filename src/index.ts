@@ -35,7 +35,9 @@ Commands:
   process.exit(1);
 }
 
-handler().catch((err: unknown) => {
+try {
+  await handler();
+} catch (err: unknown) {
   console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
-});
+}

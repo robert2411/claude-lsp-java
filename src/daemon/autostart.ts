@@ -1,6 +1,6 @@
 import type { IpcRequest, IpcResponse } from "./protocol.ts";
 import { SOCKET_PATH } from "../core/paths.ts";
-import { existsSync, unlinkSync } from "fs";
+import { existsSync, unlinkSync } from "node:fs";
 import { log } from "../core/log.ts";
 import { selfArgv } from "../util/self.ts";
 

@@ -1,5 +1,5 @@
 import { ipcRequest } from "../daemon/autostart.ts";
-import type { DiagnosticsResult, Diagnostic, DiagnosticSeverity } from "../daemon/protocol.ts";
+import type { DiagnosticsResult, DiagnosticSeverity } from "../daemon/protocol.ts";
 import { MAX_DIAGNOSTIC_ENTRIES, MAX_ADDITIONAL_CONTEXT_BYTES } from "../core/config.ts";
 
 export async function runHook(): Promise<void> {
@@ -15,7 +15,7 @@ export async function runHook(): Promise<void> {
     };
 
     const filePath = input.tool_input?.file_path;
-    if (!filePath || !filePath.endsWith(".java")) { exit0(); return; }
+    if (!filePath?.endsWith(".java")) { exit0(); return; }
 
     const result = await ipcRequest({ op: "diagnostics", payload: { file_path: filePath } }) as DiagnosticsResult;
     additionalContext = formatDiagnostics(result);
@@ -71,7 +71,8 @@ function formatDiagnostics(result: DiagnosticsResult): string {
   lines.push(`Java diagnostics for ${file} (${result.diagnostics.length} total)${suffix}:`);
 
   for (const d of capped) {
-    lines.push(`  ${d.severity.toUpperCase()} L${d.line + 1}:${d.character + 1}: ${d.message}${d.code ? ` [${d.code}]` : ""}`);
+    const codeStr = d.code ? ` [${d.code}]` : "";
+    lines.push(`  ${d.severity.toUpperCase()} L${d.line + 1}:${d.character + 1}: ${d.message}${codeStr}`);
   }
   if (extra > 0) lines.push(`  (+${extra} more diagnostics)`);
 

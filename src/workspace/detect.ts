@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, realpathSync, statSync } from "fs";
-import { dirname, join } from "path";
-import { homedir } from "os";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 
 const HOME = homedir();
 const cache = new Map<string, string>();
@@ -40,7 +40,7 @@ function detectRoot(startDir: string): string {
   }
 
   // Topmost pom wins (last element = closest to root)
-  const topmost = pomDirs[pomDirs.length - 1];
+  const topmost = pomDirs.at(-1)!;
 
   // Verify it's actually a reactor by checking <modules> tag (lightweight)
   if (pomDirs.length > 1 && isReactor(topmost)) {

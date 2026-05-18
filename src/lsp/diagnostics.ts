@@ -7,9 +7,9 @@ interface DiagnosticsEntry {
 }
 
 export class DiagnosticsStore {
-  private store = new Map<string, DiagnosticsEntry>();
+  private readonly store = new Map<string, DiagnosticsEntry>();
   // Listeners waiting for fresh diagnostics for a URI
-  private listeners = new Map<string, Array<(entry: DiagnosticsEntry) => void>>();
+  private readonly listeners = new Map<string, Array<(entry: DiagnosticsEntry) => void>>();
 
   publish(uri: string, version: number | undefined, diagnostics: LspDiagnostic[]): void {
     const entry: DiagnosticsEntry = {

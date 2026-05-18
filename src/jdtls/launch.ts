@@ -1,6 +1,6 @@
-import { spawn } from "child_process";
-import { mkdirSync } from "fs";
-import { join } from "path";
+import { spawn } from "node:child_process";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 import { JDTLS_JVM_ARGS } from "../core/config.ts";
 import { WORKSPACES_DIR } from "../core/paths.ts";
 import { sha256String } from "../util/sha256.ts";
@@ -9,7 +9,7 @@ import { getJdtlsLayout, bootstrapJdtls } from "./bootstrap.ts";
 import { LspClient } from "../lsp/client.ts";
 import { fileToUri } from "../util/uri.ts";
 import { log } from "../core/log.ts";
-import type { ChildProcess } from "child_process";
+import type { ChildProcess } from "node:child_process";
 
 export interface JdtlsSession {
   proc: ChildProcess;
@@ -17,7 +17,7 @@ export interface JdtlsSession {
   rootUri: string;
 }
 
-export async function launchJdtls(rootPath: string, logStream: import("fs").WriteStream | null): Promise<JdtlsSession> {
+export async function launchJdtls(rootPath: string, logStream: import("node:fs").WriteStream | null): Promise<JdtlsSession> {
   let layout = getJdtlsLayout();
   if (!layout) {
     log.info("jdtls not found in cache, bootstrapping…");

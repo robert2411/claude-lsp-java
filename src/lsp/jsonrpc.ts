@@ -1,4 +1,4 @@
-import type { ChildProcess } from "child_process";
+import type { ChildProcess } from "node:child_process";
 import { log } from "../core/log.ts";
 
 export type NotificationHandler = (method: string, params: unknown) => void;
@@ -11,14 +11,14 @@ interface Pending {
 }
 
 export class JsonRpcClient {
-  private pending = new Map<number, Pending>();
+  private readonly pending = new Map<number, Pending>();
   private nextId = 1;
   private buf = Buffer.alloc(0);
-  private onNotification: NotificationHandler;
-  private onServerRequest: RequestHandler;
+  private readonly onNotification: NotificationHandler;
+  private readonly onServerRequest: RequestHandler;
 
   constructor(
-    private proc: ChildProcess,
+    private readonly proc: ChildProcess,
     onNotification: NotificationHandler,
     onServerRequest: RequestHandler,
   ) {
@@ -43,14 +43,14 @@ export class JsonRpcClient {
     if (headerEnd === -1) return null;
 
     const headers = this.buf.subarray(0, headerEnd).toString("ascii");
-    const match = headers.match(/Content-Length:\s*(\d+)/i);
+    const match = /Content-Length:\s*(\d+)/i.exec(headers);
     if (!match) {
       // Skip malformed
       this.buf = this.buf.subarray(headerEnd + 4);
       return null;
     }
 
-    const length = parseInt(match[1]);
+    const length = Number.parseInt(match[1]);
     const bodyStart = headerEnd + 4;
     if (this.buf.length < bodyStart + length) return null;
 
