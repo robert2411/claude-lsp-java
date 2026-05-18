@@ -35,7 +35,7 @@ export async function runHook(): Promise<void> {
   process.exit(0);
 }
 
-function formatDiagnostics(result: DiagnosticsResult): string {
+export function formatDiagnostics(result: DiagnosticsResult): string {
   if (result.status === "indexing") {
     return `Java diagnostics: jdtls is indexing the project (${result.indexingMessage ?? "please wait"}). Diagnostics will be available on the next edit.`;
   }
