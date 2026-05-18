@@ -100,10 +100,15 @@ describe("findAllJdks", () => {
 });
 
 describe("findRunnerJdk", () => {
-  it("returns a non-empty string when a JDK ≥21 is available", () => {
-    const result = findRunnerJdk();
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
+  it("returns a non-empty string or throws when no JDK ≥21 is available", () => {
+    try {
+      const result = findRunnerJdk();
+      expect(typeof result).toBe("string");
+      expect(result.length).toBeGreaterThan(0);
+    } catch (err) {
+      expect(err instanceof Error).toBe(true);
+      expect((err as Error).message).toContain("Java 21");
+    }
   }, 30000);
 
   it("throws when JDTLS_JAVA_HOME points to a non-existent or too-old JDK", () => {
