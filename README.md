@@ -31,10 +31,35 @@ INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/robert24
 `install` will:
 1. Verify Java 21+ and `tar` are available
 2. Download and cache jdtls 1.58.0 (~90MB, one-time)
-3. Register the PostToolUse hook in `~/.claude/settings.json`
+3. Ask whether to register the PostToolUse hook in `~/.claude/settings.json` (optional)
 4. Register the MCP server in `~/.claude.json`
 
 Then **restart Claude Code** for the hook and MCP to take effect.
+
+To skip the hook prompt and never install it:
+
+```bash
+claude-java-lsp install --no-hook
+```
+
+To add the hook later (after skipping it during install):
+
+```bash
+claude-java-lsp install --hook-only
+```
+
+## Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/robert2411/claude-lsp-java/master/uninstall.sh | bash
+```
+
+This removes the hook registration, the MCP server, the jdtls cache, and the binary. To uninstall without the curl one-liner:
+
+```bash
+claude-java-lsp uninstall --purge   # remove hook + MCP + jdtls cache
+rm "$(command -v claude-java-lsp)"  # remove the binary
+```
 
 ## Pre-warm (recommended)
 
@@ -72,6 +97,15 @@ claude-java-lsp stop
 
 # Force re-download jdtls
 claude-java-lsp install --force
+
+# Install only the PostToolUse hook (if you skipped it during install)
+claude-java-lsp install --hook-only
+
+# Remove hook and MCP registration (keeps binary + jdtls cache)
+claude-java-lsp uninstall
+
+# Remove everything including jdtls cache
+claude-java-lsp uninstall --purge
 ```
 
 ## Multi-machine setup

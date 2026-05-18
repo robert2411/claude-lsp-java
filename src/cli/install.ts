@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { createInterface } from "node:readline";
 import { dirname } from "node:path";
 import { execSync } from "node:child_process";
 import { CLAUDE_SETTINGS } from "../core/paths.ts";
@@ -6,9 +7,34 @@ import { bootstrapJdtls } from "../jdtls/bootstrap.ts";
 import { findRunnerJdk, findAllJdks } from "../jdtls/jdk.ts";
 import { selfCommand } from "../util/self.ts";
 
+async function promptYesNo(question: string, defaultYes = true): Promise<boolean> {
+  if (!process.stdin.isTTY) return defaultYes;
+  const hint = defaultYes ? "[Y/n]" : "[y/N]";
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise(resolve => {
+    rl.question(`${question} ${hint} `, answer => {
+      rl.close();
+      const a = answer.trim().toLowerCase();
+      resolve(a === "" ? defaultYes : a === "y" || a === "yes");
+    });
+  });
+}
+
 export async function runInstall(args: string[]): Promise<void> {
   const force = args.includes("--force");
   const scope = args.includes("--scope") ? args[args.indexOf("--scope") + 1] : "user";
+  const hookOnly = args.includes("--hook-only");
+  const noHook = args.includes("--no-hook");
+
+  const self = selfCommand();
+
+  if (hookOnly) {
+    console.log("=== claude-java-lsp install --hook-only ===\n");
+    registerHook(self);
+    console.log("\n✓ Hook registered!\n");
+    console.log("Restart Claude Code for the hook to take effect.");
+    return;
+  }
 
   // 1. Preflight: verify tar, detect runner JDK
   console.log("=== claude-java-lsp install ===\n");
@@ -40,11 +66,23 @@ export async function runInstall(args: string[]): Promise<void> {
   }
 
   // 3. Resolve our command (handles compiled binary vs dev mode)
-  const self = selfCommand();
   console.log(`\n✓ Binary: ${self}`);
 
-  // 4. Register PostToolUse hook in ~/.claude/settings.json
-  registerHook(self);
+  // 4. Optionally register PostToolUse hook in ~/.claude/settings.json
+  let installHook: boolean;
+  if (noHook) {
+    installHook = false;
+  } else {
+    console.log("\nThe PostToolUse hook fires after every Java edit and injects diagnostics");
+    console.log("into Claude's context so it can self-correct immediately.");
+    installHook = await promptYesNo("Install the PostToolUse hook?", true);
+  }
+
+  if (installHook) {
+    registerHook(self);
+  } else {
+    console.log("  Hook skipped. Run `claude-java-lsp install --hook-only` later to add it.");
+  }
 
   // 5. Register MCP server
   registerMcp(self, scope);
@@ -61,7 +99,8 @@ export async function runInstall(args: string[]): Promise<void> {
   }
 
   console.log("\n✓ Installation complete!\n");
-  console.log("Restart Claude Code for the hook and MCP server to take effect.");
+  const needsRestart = installHook ? "hook and MCP server" : "MCP server";
+  console.log(`Restart Claude Code for the ${needsRestart} to take effect.`);
 }
 
 
