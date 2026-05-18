@@ -69,14 +69,7 @@ export async function runInstall(args: string[]): Promise<void> {
   console.log(`\n✓ Binary: ${self}`);
 
   // 4. Optionally register PostToolUse hook in ~/.claude/settings.json
-  let installHook: boolean;
-  if (noHook) {
-    installHook = false;
-  } else {
-    console.log("\nThe PostToolUse hook fires after every Java edit and injects diagnostics");
-    console.log("into Claude's context so it can self-correct immediately.");
-    installHook = await promptYesNo("Install the PostToolUse hook?", true);
-  }
+  const installHook = await resolveHookInstall(noHook);
 
   if (installHook) {
     registerHook(self);
@@ -103,6 +96,13 @@ export async function runInstall(args: string[]): Promise<void> {
   console.log(`Restart Claude Code for the ${needsRestart} to take effect.`);
 }
 
+
+async function resolveHookInstall(noHook: boolean): Promise<boolean> {
+  if (noHook) return false;
+  console.log("\nThe PostToolUse hook fires after every Java edit and injects diagnostics");
+  console.log("into Claude's context so it can self-correct immediately.");
+  return promptYesNo("Install the PostToolUse hook?", true);
+}
 
 function checkTar(): void {
   try {

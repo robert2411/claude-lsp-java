@@ -27,54 +27,70 @@ const filePos = {
 export async function startMcpServer(): Promise<void> {
   const server = new McpServer({ name: "java-lsp", version: "0.1.0" });
 
-  server.tool("java_diagnostics",
-    "Get Java compiler and type diagnostics for a file. First call after startup may return status='indexing' while jdtls imports the project.",
-    { file_path: z.string().describe("Absolute path to the .java file") },
+  server.registerTool("java_diagnostics",
+    {
+      description: "Get Java compiler and type diagnostics for a file. First call after startup may return status='indexing' while jdtls imports the project.",
+      inputSchema: { file_path: z.string().describe("Absolute path to the .java file") },
+    },
     (args) => callIpc("diagnostics", args),
   );
 
-  server.tool("java_hover",
-    "Get hover information (javadoc, type signature) for a symbol at a position.",
-    filePos,
+  server.registerTool("java_hover",
+    {
+      description: "Get hover information (javadoc, type signature) for a symbol at a position.",
+      inputSchema: filePos,
+    },
     (args) => callIpc("hover", args),
   );
 
-  server.tool("java_definition",
-    "Go to the definition of a symbol (class, method, field) at a position.",
-    filePos,
+  server.registerTool("java_definition",
+    {
+      description: "Go to the definition of a symbol (class, method, field) at a position.",
+      inputSchema: filePos,
+    },
     (args) => callIpc("definition", args),
   );
 
-  server.tool("java_references",
-    "Find all references to a symbol at a position across the workspace.",
-    { ...filePos, include_declaration: z.boolean().optional().describe("Include the declaration itself") },
+  server.registerTool("java_references",
+    {
+      description: "Find all references to a symbol at a position across the workspace.",
+      inputSchema: { ...filePos, include_declaration: z.boolean().optional().describe("Include the declaration itself") },
+    },
     (args) => callIpc("references", args),
   );
 
-  server.tool("java_completion",
-    "Get code completion suggestions at a position (up to 100 items).",
-    filePos,
+  server.registerTool("java_completion",
+    {
+      description: "Get code completion suggestions at a position (up to 100 items).",
+      inputSchema: filePos,
+    },
     (args) => callIpc("completion", args),
   );
 
-  server.tool("java_document_symbols",
-    "List all symbols (classes, methods, fields) in a Java file.",
-    { file_path: z.string().describe("Absolute path to the .java file") },
+  server.registerTool("java_document_symbols",
+    {
+      description: "List all symbols (classes, methods, fields) in a Java file.",
+      inputSchema: { file_path: z.string().describe("Absolute path to the .java file") },
+    },
     (args) => callIpc("documentSymbols", args),
   );
 
-  server.tool("java_workspace_symbols",
-    "Search for symbols across the entire Maven workspace by name query.",
+  server.registerTool("java_workspace_symbols",
     {
-      query: z.string().describe("Symbol name search query (can be partial)"),
-      file_path: z.string().optional().describe("Optional: a file to anchor the workspace root"),
+      description: "Search for symbols across the entire Maven workspace by name query.",
+      inputSchema: {
+        query: z.string().describe("Symbol name search query (can be partial)"),
+        file_path: z.string().optional().describe("Optional: a file to anchor the workspace root"),
+      },
     },
     (args) => callIpc("workspaceSymbols", args),
   );
 
-  server.tool("java_rename",
-    "Compute rename edits for a symbol. Returns changes to apply — does NOT modify files. Apply with the Edit tool.",
-    { ...filePos, new_name: z.string().describe("New name for the symbol") },
+  server.registerTool("java_rename",
+    {
+      description: "Compute rename edits for a symbol. Returns changes to apply — does NOT modify files. Apply with the Edit tool.",
+      inputSchema: { ...filePos, new_name: z.string().describe("New name for the symbol") },
+    },
     (args) => callIpc("rename", args),
   );
 
