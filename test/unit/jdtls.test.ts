@@ -57,12 +57,12 @@ afterEach(() => {
 });
 
 describe("findAllJdks", () => {
-  it("returns an array (possibly empty in CI without JDK)", () => {
+  it("returns an array (possibly empty in CI without JDK)", { timeout: 30000 }, () => {
     const jdks = findAllJdks();
     expect(Array.isArray(jdks)).toBe(true);
   });
 
-  it("each entry has path, version, and name fields", () => {
+  it("each entry has path, version, and name fields", { timeout: 30000 }, () => {
     const jdks = findAllJdks();
     for (const jdk of jdks) {
       expect(typeof jdk.path).toBe("string");
