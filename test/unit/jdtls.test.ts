@@ -57,12 +57,12 @@ afterEach(() => {
 });
 
 describe("findAllJdks", () => {
-  it("returns an array (possibly empty in CI without JDK)", { timeout: 30000 }, () => {
+  it("returns an array (possibly empty in CI without JDK)", () => {
     const jdks = findAllJdks();
     expect(Array.isArray(jdks)).toBe(true);
-  });
+  }, 30000);
 
-  it("each entry has path, version, and name fields", { timeout: 30000 }, () => {
+  it("each entry has path, version, and name fields", () => {
     const jdks = findAllJdks();
     for (const jdk of jdks) {
       expect(typeof jdk.path).toBe("string");
@@ -70,7 +70,7 @@ describe("findAllJdks", () => {
       expect(typeof jdk.name).toBe("string");
       expect(jdk.version).toBeGreaterThan(0);
     }
-  });
+  }, 30000);
 
   it("skips JAVA_HOME if java binary is not present", () => {
     process.env.JAVA_HOME = join(tmpRoot, "fake-jdk-no-bin");
