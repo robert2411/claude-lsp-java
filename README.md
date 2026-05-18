@@ -61,6 +61,20 @@ claude-java-lsp uninstall --purge   # remove hook + MCP + jdtls cache
 rm "$(command -v claude-java-lsp)"  # remove the binary
 ```
 
+## Update
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/robert2411/claude-lsp-java/master/update.sh | bash
+```
+
+This downloads the latest binary and replaces the existing one. Your existing configuration (hook, MCP, jdtls) is preserved. Restart Claude Code after updating.
+
+To also force-refresh jdtls after updating the binary:
+
+```bash
+claude-java-lsp install --force
+```
+
 ## Pre-warm (recommended)
 
 jdtls takes 30–180s to import a Maven project on first run. Warm it before your first edit so that initial diagnostics are instant:
