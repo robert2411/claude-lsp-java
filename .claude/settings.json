@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun test test/unit *)",
+      "Bash(bun run typecheck *)",
+      "Bash(docker compose logs *)",
+      "mcp__sonarqube__search_sonar_issues_in_projects"
+    ]
+  }
+}

@@ -3,6 +3,7 @@ dist/
 coverage/
 bun.lockb
 *.tmp
+.claude/settings.local.json
 # jdtls / Eclipse project metadata generated in fixture
 test/e2e/**/.classpath
 test/e2e/**/.project
