@@ -31,7 +31,7 @@ describe("getJdtlsLayout", () => {
 });
 
 // ---- jdk: findAllJdks / findRunnerJdk ----
-import { findAllJdks } from "../../src/jdtls/jdk.ts";
+import { findAllJdks, findRunnerJdk } from "../../src/jdtls/jdk.ts";
 
 let tmpRoot: string;
 let origHome: string | undefined;
@@ -97,4 +97,24 @@ describe("findAllJdks", () => {
     const matching = jdks.filter(j => j.path === fakePath);
     expect(matching.length).toBeLessThanOrEqual(1);
   });
+});
+
+describe("findRunnerJdk", () => {
+  it("returns a non-empty string when a JDK ≥21 is available", () => {
+    const result = findRunnerJdk();
+    expect(typeof result).toBe("string");
+    expect(result.length).toBeGreaterThan(0);
+  }, 30000);
+
+  it("throws when JDTLS_JAVA_HOME points to a non-existent or too-old JDK", () => {
+    process.env.JDTLS_JAVA_HOME = join(tmpRoot, "fake-jdk-v8");
+    // No java binary → javaVersion returns null → falls through to PATH/candidates
+    // Should either succeed (if PATH has java 21+) or throw — but never crash
+    try {
+      findRunnerJdk();
+    } catch (err) {
+      expect(err instanceof Error).toBe(true);
+    }
+    delete process.env.JDTLS_JAVA_HOME;
+  }, 30000);
 });

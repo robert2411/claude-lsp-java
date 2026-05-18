@@ -76,4 +76,50 @@ describe("JsonRpcClient", () => {
     feedData(full.subarray(10));
     expect(await promise).toBe("hello");
   });
+
+  it("rejects a request when an error response arrives", async () => {
+    const { proc, feedData } = makeFakeProc();
+    const client = new JsonRpcClient(proc, () => {}, () => null);
+
+    const promise = client.request("hover", {});
+    const body = JSON.stringify({ jsonrpc: "2.0", id: 1, error: { message: "Symbol not found" } });
+    feedData(Buffer.from(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`));
+    await expect(promise).rejects.toThrow("Symbol not found");
+  });
+
+  it("rejects all pending requests when the process exits", async () => {
+    const { proc, feedData } = makeFakeProc();
+    const client = new JsonRpcClient(proc, () => {}, () => null);
+
+    // Feed a partial response so the request stays pending
+    const p1 = client.request("method1", {});
+    const p2 = client.request("method2", {});
+    // Emit exit — should reject both pending requests
+    proc.emit("exit");
+    await expect(p1).rejects.toThrow("jdtls process exited");
+    await expect(p2).rejects.toThrow("jdtls process exited");
+    void feedData; // suppress unused warning
+  });
+
+  it("handles server-initiated requests and replies", () => {
+    const { proc, feedData, written } = makeFakeProc();
+    new JsonRpcClient(proc, () => {}, (method) => {
+      if (method === "workspace/configuration") return [{ java: true }];
+      return null;
+    });
+
+    const body = JSON.stringify({ jsonrpc: "2.0", id: 99, method: "workspace/configuration", params: {} });
+    feedData(Buffer.from(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`));
+    const sent = written.join("");
+    expect(sent).toContain('"id":99');
+    expect(sent).toContain('"result"');
+  });
+
+  it("skips malformed headers", () => {
+    const { proc, feedData } = makeFakeProc();
+    new JsonRpcClient(proc, () => {}, () => null);
+    // Missing Content-Length header — should not throw
+    const malformed = Buffer.from("Bad-Header: foo\r\n\r\n");
+    expect(() => feedData(malformed)).not.toThrow();
+  });
 });
